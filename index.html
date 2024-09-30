@@ -1,1 +1,99 @@
-"Hello World" 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Name Picker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Random Name Picker</h1>
+        <input type="text" id="pickerName" placeholder="Enter your name">
+        <p id="nameDisplay">Click the button to pick a name</p>
+        <button onclick="pickName()">Pick a Name</button>
+        <button onclick="downloadCSV()">Download CSV</button>
+        <button onclick="clearData()">Clear Data</button>
+    </div>
+
+    <script>
+        const names = ["Alice", "Bob", "Charlie", "Diana", "Eve"];
+        const pickedNames = JSON.parse(localStorage.getItem('pickedNames')) || [];
+        const pickers = new Set(pickedNames.map(entry => entry.picker));
+
+        function pickName() {
+            const pickerName = document.getElementById('pickerName').value;
+            if (!pickerName) {
+                alert("Please enter your name.");
+                return;
+            }
+            if (pickers.has(pickerName)) {
+                alert("You have already picked a name.");
+                return;
+            }
+            if (names.length === 0) {
+                document.getElementById('nameDisplay').innerText = "All names have been picked!";
+                return;
+            }
+            const randomIndex = Math.floor(Math.random() * names.length);
+            const pickedName = names.splice(randomIndex, 1)[0];
+            document.getElementById('nameDisplay').innerText = `${pickerName} picked ${pickedName}`;
+            pickedNames.push({ picker: pickerName, name: pickedName });
+            pickers.add(pickerName);
+            localStorage.setItem('pickedNames', JSON.stringify(pickedNames));
+        }
+
+        function downloadCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,Picker,Name\n";
+            pickedNames.forEach(function (entry) {
+                csvContent += `${entry.picker},${entry.name}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "picked_names.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function clearData() {
+            localStorage.removeItem('pickedNames');
+            pickedNames.length = 0;
+            pickers.clear();
+            document.getElementById('nameDisplay').innerText = "Data cleared!";
+        }
+    </script>
+</body>
+</html>
